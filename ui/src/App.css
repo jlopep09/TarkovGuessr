@@ -1,14 +1,6 @@
 
-@layer primereact, tailwind-utilities;
+@import "tailwindcss";
 
-/* IMPORTANT: In "styled" mode you must add the PrimeReact Theme here. Do NOT include in "unstyled" mode */
-@import 'primereact/resources/themes/lara-light-blue/theme.css' layer(primereact);
-
-
-
-@layer tailwind-utilities {
-  @import "tailwindcss";
-}
 #root {
   max-width: 1280px;
   margin: 0 auto;
