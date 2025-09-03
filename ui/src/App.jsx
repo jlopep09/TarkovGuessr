@@ -3,12 +3,12 @@ import PouchGrid from './PouchGrid'
 
 function App() {
   return (
-    <div className='flex flex-col justify-center align-middle min-w-lvw text-center items-center'>
+    <div className="flex flex-col justify-center text-center w-full">
 
-      <h1>Tarkov Guessr</h1>
-      <p>Tarkov guessr is a game.</p>
+      <h1 className='pt-5'>Tarkov Guessr</h1>
+      <p>Try to guess the pouch content</p>
       <p></p>
-      <div className=' my-3 w-lg '>
+      <div className=' my-3 w-lg m-auto'>
         <PouchGrid></PouchGrid>
       </div>
     </div>
