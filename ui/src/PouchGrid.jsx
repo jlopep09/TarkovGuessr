@@ -1,5 +1,5 @@
 // src/components/PouchGrid.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   getGridIndex,
   canPlaceItem,
@@ -12,27 +12,43 @@ const PouchGrid = () => {
   const [craftingGrid, setCraftingGrid] = useState(Array(9).fill(null));
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [dragPosition, setDragPosition] = useState({ x: -9999, y: -9999 }); // posición controlada por state
+  const [dragPosition, setDragPosition] = useState({ x: -9999, y: -9999 });
   const [previewPosition, setPreviewPosition] = useState(null);
   const [showDragged, setShowDragged] = useState(false);
+  const [availableItems, setAvailableItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const gridRef = useRef(null);
   const SLOT_SIZE = 60;
   const SLOT_GAP = 2;
 
-  const availableItems = [
-    { id: 'sword', name: 'Espada', color: '#C0C0C0', emoji: '⚔️', width: 1, height: 3 },
-    { id: 'shield', name: 'Escudo', color: '#8B4513', emoji: '🛡️', width: 2, height: 2 },
-    { id: 'potion', name: 'Poción', color: '#FF6B6B', emoji: '🧪', width: 1, height: 1 },
-    { id: 'bow', name: 'Arco', color: '#8B4513', emoji: '🏹', width: 1, height: 2 },
-    { id: 'scroll', name: 'Pergamino', color: '#F4E4BC', emoji: '📜', width: 2, height: 1 },
-    { id: 'gem', name: 'Gema', color: '#9932CC', emoji: '💎', width: 1, height: 1 },
-    { id: 'staff', name: 'Bastón', color: '#4169E1', emoji: '🪄', width: 1, height: 3 },
-    { id: 'tome', name: 'Tomo', color: '#228B22', emoji: '📚', width: 2, height: 2 },
-    { id: 'ring', name: 'Anillo', color: '#FFD700', emoji: '💍', width: 1, height: 1 },
-    { id: 'spear', name: 'Lanza', color: '#8B4513', emoji: '🔱', width: 3, height: 1 },
-  ];
+  // ------------------- FETCH ITEMS DESDE BACKEND -------------------
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // --- Handlers que usan las utilidades puras ---
+        // Si tu backend corre en Docker Compose y tu frontend está en otro contenedor,
+        // asegúrate de usar el nombre del servicio como hostname.
+        const response = await fetch('http://localhost:6868/api/items'); 
+        if (!response.ok) throw new Error(`Error ${response.status}`);
+
+        const data = await response.json();
+        setAvailableItems(data);
+      } catch (err) {
+        console.error('Error fetching items:', err);
+        setError(err.message || 'Error desconocido');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  // ------------------- HANDLERS (igual que antes) -------------------
   const handleItemMouseDown = (e, item) => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
@@ -43,7 +59,6 @@ const PouchGrid = () => {
       y: e.clientY - rect.top - rect.height / 2
     };
     setDragOffset(offset);
-    // inicializamos la posición controlada para evitar ver el overlay en esquina
     setDragPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
   };
 
@@ -51,7 +66,6 @@ const PouchGrid = () => {
     e.preventDefault();
     const index = getGridIndex(row, col);
     const item = craftingGrid[index];
-
     if (!item || !item.isMainCell) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -64,20 +78,14 @@ const PouchGrid = () => {
     setDragOffset(offset);
     setDragPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
 
-    // Remover item temporalmente del grid
     setCraftingGrid(removeItemFromGrid(craftingGrid, row, col));
   };
 
   const handleMouseMove = (e) => {
     if (!draggedItem) return;
-
-    // activar overlay tras el primer movimiento
     if (!showDragged) setShowDragged(true);
-
-    // Actualizamos la posición en el state (ya no manipulamos el DOM)
     setDragPosition({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
 
-    // Mostrar preview de colocación
     const gridPos = getGridPositionFromMouse(gridRef, SLOT_SIZE, SLOT_GAP, e.clientX, e.clientY);
     if (gridPos) {
       const canPlace = canPlaceItem(draggedItem, gridPos.row, gridPos.col, craftingGrid);
@@ -91,11 +99,9 @@ const PouchGrid = () => {
     if (!draggedItem) return;
 
     const gridPos = getGridPositionFromMouse(gridRef, SLOT_SIZE, SLOT_GAP, e.clientX, e.clientY);
-
     if (gridPos && canPlaceItem(draggedItem, gridPos.row, gridPos.col, craftingGrid)) {
       setCraftingGrid(placeItemOnGrid(craftingGrid, draggedItem, gridPos.row, gridPos.col));
     } else if (draggedItem.fromGrid) {
-      // devolver a su posición original si venía del grid
       setCraftingGrid(placeItemOnGrid(craftingGrid, draggedItem, draggedItem.originalRow, draggedItem.originalCol));
     }
 
@@ -105,7 +111,7 @@ const PouchGrid = () => {
     setDragPosition({ x: -9999, y: -9999 });
   };
 
-  const clearGrid = () => {
+   const clearGrid = () => {
     setCraftingGrid(Array(9).fill(null));
   };
 
