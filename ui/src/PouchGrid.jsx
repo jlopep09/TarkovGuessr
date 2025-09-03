@@ -183,7 +183,7 @@ const PouchGrid = () => {
             return (
               <div
                 key={`item-${item.id}-${index}`}
-                className="absolute flex items-center justify-center text-white font-bold rounded cursor-pointer hover:brightness-110 transition-all select-none"
+                className="absolute flex items-center justify-center font-bold rounded cursor-pointer hover:brightness-110 transition-all select-none"
                 style={{
                   left: `${col * (SLOT_SIZE + SLOT_GAP)}px`,
                   top: `${row * (SLOT_SIZE + SLOT_GAP)}px`,
@@ -197,9 +197,9 @@ const PouchGrid = () => {
                 onMouseDown={(e) => onGridItemMouseDown(e, row, col)}
                 title={`${item.name} (${item.width}x${item.height})`}
               >
-                <div className="text-center">
-                  <div className="text-2xl "><img src={item.emoji}></img></div>
-                  <div className="text-xs">{item.width}x{item.height}</div>
+                <div className="text-center h-full">
+                  <div className="text-2xl w-full p-0 h-full flex flex-col justify-center align-middle items-center "><img className='h-full object-cover' src={item.emoji}></img></div>
+                  <div className="text-xs hidden">{item.width}x{item.height}</div>
                 </div>
               </div>
             );
@@ -246,7 +246,7 @@ const PouchGrid = () => {
             title={`${item.name} (${item.width}x${item.height})`}
           >
             <div className="text-center text-white select-none pointer-events-none">
-              <div className="text-2xl mb-1"><img src={item.emoji}></img></div>
+              <div className="text-2xl mb-1 w-12 h-12 "><img className='w-12 h-12 object-contain' src={item.emoji}></img></div>
               <div className="text-xs font-semibold">{item.name}</div>
               <div className="text-xs opacity-75">{item.width}x{item.height}</div>
             </div>
