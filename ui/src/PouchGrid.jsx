@@ -198,7 +198,7 @@ const PouchGrid = () => {
                 title={`${item.name} (${item.width}x${item.height})`}
               >
                 <div className="text-center">
-                  <div className="text-2xl">{item.emoji}</div>
+                  <div className="text-2xl "><img src={item.emoji}></img></div>
                   <div className="text-xs">{item.width}x{item.height}</div>
                 </div>
               </div>
@@ -246,7 +246,7 @@ const PouchGrid = () => {
             title={`${item.name} (${item.width}x${item.height})`}
           >
             <div className="text-center text-white select-none pointer-events-none">
-              <div className="text-2xl mb-1">{item.emoji}</div>
+              <div className="text-2xl mb-1"><img src={item.emoji}></img></div>
               <div className="text-xs font-semibold">{item.name}</div>
               <div className="text-xs opacity-75">{item.width}x{item.height}</div>
             </div>
@@ -278,8 +278,8 @@ const PouchGrid = () => {
       >
         <div className="w-full h-full flex items-center justify-center text-white font-bold">
           <div className="text-center">
-            <div className="text-2xl">{draggedItem.emoji}</div>
-            <div className="text-xs">{draggedItem.width}x{draggedItem.height}</div>
+            <div className="text-2xl"><img src={draggedItem.emoji}></img></div>
+            <div className="text-xs ">{draggedItem.width}x{draggedItem.height}</div>
           </div>
         </div>
       </div>
