@@ -14,9 +14,9 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // aplica a todos los endpoints
-                        .allowedOrigins("https://tarkov.joselp.com") // tu front
+                        .allowedOrigins("*") // tu front
                         .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
-                        .allowCredentials(true); // necesario si usas cookies o auth
+                        .allowCredentials(false); // necesario si usas cookies o auth
             }
         };
     }
