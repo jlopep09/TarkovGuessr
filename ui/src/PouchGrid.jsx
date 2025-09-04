@@ -18,6 +18,7 @@ const PouchGrid = () => {
   const [availableItems, setAvailableItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [guessing, setGuessing] = useState(false); // estado para la petición Guess
 
   const gridRef = useRef(null);
   const SLOT_SIZE = 60;
@@ -111,8 +112,100 @@ const PouchGrid = () => {
     setDragPosition({ x: -9999, y: -9999 });
   };
 
-   const clearGrid = () => {
+  const clearGrid = () => {
     setCraftingGrid(Array(9).fill(null));
+  };
+
+  // ------------------ Aplicar resultado del guess ------------------
+  const applyGuessResult = (result) => {
+    // result.correctCells => array de { index, row, col, itemId, coveredIndices }
+    if (!result || !Array.isArray(result.correctCells)) {
+      // si no vienen correctCells, limpiamos todo
+      setCraftingGrid(Array(9).fill(null));
+      return;
+    }
+
+    // Construimos un nuevo grid vacío
+    let newGrid = Array(9).fill(null);
+
+    // Por cada correctCell colocamos el item correspondiente usando placeItemOnGrid
+    for (const cc of result.correctCells) {
+      const mainIdx = cc.index;
+      const itemId = cc.itemId;
+
+      // Intentar obtener el objeto item desde el craftingGrid actual (preferible)
+      let itemObj = craftingGrid[mainIdx];
+
+      // Si no está ahí, buscar en availableItems
+      if (!itemObj || itemObj.id !== itemId) {
+        const catalogItem = availableItems.find(ai => ai.id === itemId);
+        if (catalogItem) {
+          // clonamos y marcamos isMainCell
+          itemObj = { ...catalogItem, isMainCell: true };
+        } else {
+          // fallback: construimos un objeto mínimo para poder colocarlo
+          itemObj = { id: itemId, name: '', width: 1, height: 1, isMainCell: true, color: '#4B5563', emoji: '' };
+        }
+      } else {
+        // si vino del craftingGrid, asegurarnos de tener isMainCell = true
+        itemObj = { ...itemObj, isMainCell: true };
+      }
+
+      // marcar como correcto para que la UI le ponga el identificador verde
+      itemObj.isCorrect = true;
+
+      // Colocar el item en newGrid usando placeItemOnGrid (evita conflictos y rellena celdas cubiertas)
+      newGrid = placeItemOnGrid(newGrid, itemObj, cc.row, cc.col);
+    }
+
+    setCraftingGrid(newGrid);
+  };
+
+  // ------------------ Handler para Guess ------------------
+  const handleGuess = async () => {
+    try {
+      setGuessing(true);
+
+      // Serializamos el estado actual del grid en una forma segura para enviar.
+      // Cada celda será null o un objeto mínimo con los campos más relevantes.
+      const payloadGrid = craftingGrid.map(item => {
+        if (!item) return null;
+        return {
+          id: item.id,
+          name: item.name,
+          width: item.width,
+          height: item.height,
+          isMainCell: item.isMainCell
+        };
+      });
+
+      const response = await fetch('http://localhost:6868/api/guess', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ grid: payloadGrid })
+      });
+
+      // Intentamos leer JSON (si el backend responde con JSON)
+      if (!response.ok) {
+        // mostrar error y, si hay body, intentar extraerlo
+        let text;
+        try { text = await response.text(); } catch { text = `<no body>`; }
+        console.error(`Guess request failed: ${response.status} ${response.statusText}`, text);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Guess response:', result);
+
+      // Aplicar el resultado al grid (conservar correctos, eliminar incorrectos)
+      applyGuessResult(result);
+    } catch (err) {
+      console.error('Error sending guess:', err);
+    } finally {
+      setGuessing(false);
+    }
   };
 
   // ----------------- Subcomponentes (mismo archivo) -----------------
@@ -173,7 +266,7 @@ const PouchGrid = () => {
             );
           })}
 
-          {/* Items - capa superior */}
+          {/* Items - capa superior (solo main cells) */}
           {craftingGrid.map((item, index) => {
             if (!item || !item.isMainCell) return null;
 
@@ -197,8 +290,21 @@ const PouchGrid = () => {
                 onMouseDown={(e) => onGridItemMouseDown(e, row, col)}
                 title={`${item.name} (${item.width}x${item.height})`}
               >
+                {/* Identificador verde si es correcto */}
+                {item.isCorrect && (
+                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"
+                       style={{ backgroundColor: '#34D399', zIndex: 20 }}>
+                    {/* pequeño check opcional */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 20 20" fill="white">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15 5.293 11.879a1 1 0 011.414-1.414L8.414 12.172l6.879-6.879a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+
                 <div className="text-center h-full">
-                  <div className="text-2xl w-full p-0 h-full flex flex-col justify-center align-middle items-center "><img className='h-full object-cover' src={item.emoji}></img></div>
+                  <div className="text-2xl w-full p-0 h-full flex flex-col justify-center align-middle items-center ">
+                    <img className='h-full object-cover' src={item.emoji} alt={item.name} />
+                  </div>
                   <div className="text-xs hidden">{item.width}x{item.height}</div>
                 </div>
               </div>
@@ -214,14 +320,15 @@ const PouchGrid = () => {
     );
   };
 
-  // Controls: limpia mochila
-  const Controls = ({ onClear }) => (
+  // Controls: limpia mochila y guess
+  const Controls = ({ onClear, onGuess, guessing }) => (
     <div className="mb-4">
       <button
-        onClick={onClear}
-        className="bg-green-700 hover:bg-green-900 text-white px-4 w-20 mr-2 py-2 rounded font-semibold transition-colors"
+        onClick={onGuess}
+        disabled={guessing}
+        className={`bg-green-700 hover:bg-green-900 text-white px-4 w-20 mr-2 py-2 rounded font-semibold transition-colors ${guessing ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        Guess
+        {guessing ? 'Guessing...' : 'Guess'}
       </button>
       <button
         onClick={onClear}
@@ -235,7 +342,7 @@ const PouchGrid = () => {
   // AvailableItemsBar: barra de items disponibles
   const AvailableItemsBar = ({ items, onItemMouseDown }) => (
     <div>
-      <h2 className="text-xl font-semibold text-white mb-4">Items Disponibles</h2>
+      <h2 className="text-xl font-semibold text-white mb-4">Items</h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 bg-neutral-900 p-6 rounded-lg">
         {items.map((item) => (
           <div
@@ -246,7 +353,7 @@ const PouchGrid = () => {
             title={`${item.name} (${item.width}x${item.height})`}
           >
             <div className="text-center text-white select-none pointer-events-none">
-              <div className="text-2xl mb-1 w-12 h-12 "><img className='w-12 h-12 object-contain' src={item.emoji}></img></div>
+              <div className="text-2xl mb-1 w-12 h-12 "><img className='w-12 h-12 object-contain' src={item.emoji} alt={item.name} /></div>
               <div className="text-xs font-semibold">{item.name}</div>
               <div className="text-xs opacity-75">{item.width}x{item.height}</div>
             </div>
@@ -254,7 +361,7 @@ const PouchGrid = () => {
         ))}
       </div>
       <p className="text-neutral-400 text-sm mt-2">
-        Arrastra los items hacia la mochila. Los items ocupan diferentes espacios según su tamaño.
+        Drag items into your backpack. Items take up different spaces depending on their size.
       </p>
     </div>
   );
@@ -278,7 +385,7 @@ const PouchGrid = () => {
       >
         <div className="w-full h-full flex items-center justify-center text-white font-bold">
           <div className="text-center">
-            <div className="text-2xl"><img src={draggedItem.emoji}></img></div>
+            <div className="text-2xl"><img src={draggedItem.emoji} alt="" /></div>
             <div className="text-xs ">{draggedItem.width}x{draggedItem.height}</div>
           </div>
         </div>
@@ -317,7 +424,7 @@ const PouchGrid = () => {
           />
 
           {/* Controls (limpiar) */}
-          <Controls onClear={clearGrid} />
+          <Controls onClear={clearGrid} onGuess={handleGuess} guessing={guessing} />
 
           {/* Barra de items disponibles */}
           <AvailableItemsBar items={availableItems} onItemMouseDown={handleItemMouseDown} />
