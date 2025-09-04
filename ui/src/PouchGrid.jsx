@@ -1,5 +1,6 @@
 // src/components/PouchGrid.jsx
 import React, { useState, useRef, useEffect } from 'react';
+import { FaLink } from "react-icons/fa";
 import {
   getGridIndex,
   canPlaceItem,
@@ -360,9 +361,10 @@ const PouchGrid = () => {
           </div>
         ))}
       </div>
-      <p className="text-neutral-400 text-sm mt-2">
-        Drag items into your backpack. Items take up different spaces depending on their size.
+      <p className="text-neutral-300 text-md mt-2">
+        Drag items into your backpack. Items take up different spaces depending on their size. 
       </p>
+      <p className="text-neutral-400 text-xs mt-2">Any suggestions or reports can be sent through the contact information found at <a className='text-neutral-300' target='_blank' href='https://joselp.com/'>my web</a></p>
     </div>
   );
 
