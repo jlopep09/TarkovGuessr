@@ -17,7 +17,6 @@ import com.bezkoder.spring.data.mongodb.service.ItemService;
 
 @RestController
 @RequestMapping("/api/items")
-@CrossOrigin(origins = "*") // para desarrollo, permite peticiones desde React
 public class ItemController  {
 
     private final ItemService service;

@@ -16,7 +16,6 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class GuessController {
 
     private final SolutionGridService solutionGridService;
