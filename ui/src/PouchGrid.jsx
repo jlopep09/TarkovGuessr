@@ -34,7 +34,7 @@ const PouchGrid = () => {
 
         // Si tu backend corre en Docker Compose y tu frontend está en otro contenedor,
         // asegúrate de usar el nombre del servicio como hostname.
-        const response = await fetch('http://localhost:6868/api/items'); 
+        const response = await fetch('http://tarkov.joselp.com:6868/api/items'); 
         if (!response.ok) throw new Error(`Error ${response.status}`);
 
         const data = await response.json();
