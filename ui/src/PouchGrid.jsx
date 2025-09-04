@@ -1,6 +1,6 @@
 // src/components/PouchGrid.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { FaLink } from "react-icons/fa";
+
 import {
   getGridIndex,
   canPlaceItem,
