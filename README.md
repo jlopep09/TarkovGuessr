@@ -1,7 +1,7 @@
 # Tarkov Guesser
 Tarkov Pouch Guesser is a game based on the video game Escape from Tarkov where you have to guess the contents of the pouch by placing the objects in the correct order. The secret contents of the pouch change daily.
 
-(Work in progress, aprox publish date 9/9/2025) [Game link](https://tarkov.joselp.com/)
+[Game link](https://tarkov.joselp.com/)
 
 ![Tarkov Guesser image](ui/public/tarkov_guesser_screenshot.png)
 
