@@ -180,7 +180,7 @@ const PouchGrid = () => {
         };
       });
 
-      const response = await fetch('http://localhost:6868/api/guess', {
+      const response = await fetch('https://api.tarkov.joselp.com/api/guess', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
