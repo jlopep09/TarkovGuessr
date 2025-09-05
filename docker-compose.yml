@@ -12,6 +12,8 @@ services:
       - $MONGODB_LOCAL_PORT:$MONGODB_DOCKER_PORT
     volumes:
       - db:/data/db
+    networks:
+      - tarkov_back_db_net
   backend:
     depends_on:
       - mongo_db
@@ -28,6 +30,8 @@ services:
       - .m2:/root/.m2
     stdin_open: true
     tty: true
+    networks:
+      - tarkov_back_db_net
   react:
     build: ./ui
     ports:
