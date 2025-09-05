@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api")
 public class GuessController {
