@@ -365,6 +365,8 @@ const PouchGrid = () => {
         Drag items into your backpack. Items take up different spaces depending on their size. 
       </p>
       <p className="text-neutral-400 text-xs mt-2">Any suggestions or reports can be sent through the contact information found at <a className='text-neutral-300' target='_blank' href='https://joselp.com/'>my web</a></p>
+      <p className="text-neutral-400 text-xs mt-2">Github repository available at <a className='text-neutral-300' target='_blank' href='https://github.com/jlopep09/TarkovGuessr'>TarkovGuesser</a></p>
+    
     </div>
   );
 
