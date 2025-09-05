@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bezkoder.spring.data.mongodb.model.Item;
 import com.bezkoder.spring.data.mongodb.service.ItemService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/items")
 public class ItemController  {
